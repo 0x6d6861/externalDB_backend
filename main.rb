@@ -49,6 +49,7 @@ class MyApp < Sinatra::Base
     user = User.first(email: email)
 
     if user.blank? # finds if the emails exists in the database
+      
       user = User.new
 
       # need to save hashed passwords
