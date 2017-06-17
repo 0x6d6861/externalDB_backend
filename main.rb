@@ -10,7 +10,7 @@ class MyApp < Sinatra::Base
   before {content_type 'application/json'}
 
   @token
-  @user
+  @user = nil
 
   get('/') {
     # json({results: User.all}, encoder: :to_json, content_type: :js)
@@ -37,13 +37,18 @@ class MyApp < Sinatra::Base
     email = params[:email]
     password = params[:password]
 
+
     user = User.first(email: email, password: password)
 
-    if user.nil?
+    if check_logged_in.nil? and user.nil? # Remove user1 if login not owrking
       message = {error: true, message: 'email or password incorrect'}
     else
       # Set login methods here
       @token = SecureRandom.hex
+
+      unless @user.nil?
+        user = @user
+      end
 
       auth = Auth.first(email: user.email)
 
