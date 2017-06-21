@@ -9,7 +9,7 @@ class MyApp < Sinatra::Base
 
   before {content_type 'application/json'}
 
-  @token
+  @token = nil
   @user = nil
 
   get('/') {
@@ -82,7 +82,7 @@ class MyApp < Sinatra::Base
     user = User.first(email: email)
 
     if user.nil? # finds if the emails exists in the database
-      
+
       user = User.new
 
       # need to save hashed passwords
@@ -130,11 +130,136 @@ class MyApp < Sinatra::Base
     return message.to_json
   }
 
-  get('/tasks/:id') {|task| "task number #{task}!"}
+  # Adding a task
+  post('/tasks') {
+    name = params[:name]
 
-  get('/task/:id/items') {|task| "Items of task number #{task}!"}
+    if check_logged_in
+      task = Task.new
+      # need to save hashed passwords
 
-  get('/task/:task/items/:item') {|task, item| "Item number #{item} of task number #{task}!"}
+      task.attributes = {
+          name: name,
+          user_id: @user.id
+      }
+
+      task.save
+
+      message = {
+          error: false,
+          message: 'Task Added Successful!'
+      }
+    else
+      message = {error: true, message: 'Authentication Faild!'}
+    end
+
+    return message.to_json
+  }
+
+  get('/tasks/:id') do |task|
+    if check_logged_in
+      # task = Task.find(task)
+      message = @user.tasks.get(task)
+      if message.nil?
+        message = {error: true, message: 'Task could not be found!'}
+      end
+    else
+      message = {error: true, message: 'Authentication Faild!'}
+    end
+    return message.to_json
+  end
+
+
+  delete('/tasks/:id') do |task|
+    if check_logged_in
+      task = @user.tasks.get(task)
+      if (!task.nil?)
+        task.destroy # TODO: Need to confirm this
+        message = {error: false, message: 'Task has been deleted!'}
+      else
+        message = {error: true, message: 'Task Could not be found!'}
+      end
+    else
+      message = {error: true, message: 'Authentication Faild!'}
+    end
+    return message.to_json
+  end
+
+  get('/task/:id/items') do |task|
+    if check_logged_in
+      # task = Task.find(task).items
+      message = @user.tasks.get(task).items
+    else
+      message = {error: true, message: 'Authentication Faild!'}
+    end
+    return message.to_json
+  end
+
+  # addind an item
+  post('/task/:id/items') do |task|
+    name = params[:name]
+    if check_logged_in
+
+      task = @user.tasks.get(task)
+
+      if !task.nil?
+        item = Item.new
+        # need to save hashed passwords
+
+        item.attributes = {
+            name: name,
+            user_id: @user.id,
+            task_id: task
+        }
+
+        item.save
+
+        message = {
+            error: false,
+            message: 'Item Added Successful!'
+        }
+      else
+        message = {
+            error: true,
+            message: 'You are not allowed to access this Task'
+        }
+      end
+
+    else
+      message = {error: true, message: 'Authentication Faild!'}
+    end
+    return message.to_json
+  end
+
+  get('/task/:task/items/:item') do |task, item|
+    if check_logged_in
+      # task = Task.find(task).items
+      message = @user.tasks.get(task).items.get(item)
+      if message.nil?
+        message = {error: true, message: 'Item Could not be found!'}
+      end
+    else
+      message = {error: true, message: 'Authentication Faild!'}
+    end
+    return message.to_json
+  end
+
+
+  delete('/task/:task/items/:item') do |task, item|
+    if check_logged_in
+      # task = Task.find(task).items
+      item = @user.tasks.get(task).items.get(item)
+      if (!item.nil?)
+        item.destroy # TODO: Need to confirm this
+        message = {error: false, message: 'Item has been deleted!'}
+      else
+        message = {error: true, message: 'Item Could not be found!'}
+      end
+    else
+      message = {error: true, message: 'Authentication Faild!'}
+    end
+    return message.to_json
+  end
 
 
   # @return [Object]
