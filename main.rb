@@ -9,8 +9,12 @@ class MyApp < Sinatra::Base
 
   before {content_type 'application/json'}
 
+  # TODO: make sure all the models have all the necessare methods
+
   @token = nil
   @user = nil
+
+  #================TEST METHODS===============
 
   get('/') {
     # json({results: User.all}, encoder: :to_json, content_type: :js)
@@ -29,6 +33,8 @@ class MyApp < Sinatra::Base
     user = User.first(email: 'agape@live.fr', password: 'password')
     user.to_json
   }
+
+  #==========================================
 
 
   # Login route
@@ -65,6 +71,7 @@ class MyApp < Sinatra::Base
 
   }
 
+  # Logout
   post('/logout') {
     token = params[:token]
     auth = Auth.first(token: token)
@@ -73,6 +80,7 @@ class MyApp < Sinatra::Base
     return message.to_json
   }
 
+  #register
   post('/register') {
 
     name = params[:name]
@@ -112,6 +120,8 @@ class MyApp < Sinatra::Base
 
   }
 
+  #================USER MODEL==================
+
   get('/profile') {
     if check_logged_in
       message = @user
@@ -120,6 +130,10 @@ class MyApp < Sinatra::Base
     end
     return message.to_json
   }
+  #===========================================
+
+
+  #===============TASK MODEL===================
 
   get('/tasks') {
     if check_logged_in
@@ -184,6 +198,27 @@ class MyApp < Sinatra::Base
     end
     return message.to_json
   end
+
+  put('/tasks/:id') do |task|
+    if check_logged_in
+      name = params[:name]
+      task = @user.tasks.get(task)
+      if (!task.nil?)
+        task.update(:name => name) unless name.nil? # TODO: Need to confirm this
+        message = task
+      else
+        message = {error: true, message: 'Task Could not be found!'}
+      end
+    else
+      message = {error: true, message: 'Authentication Faild!'}
+    end
+    return message.to_json
+  end
+
+  #==============================================
+
+
+  #=================ITEM MODEL====================
 
   get('/task/:id/items') do |task|
     if check_logged_in
@@ -261,8 +296,31 @@ class MyApp < Sinatra::Base
     return message.to_json
   end
 
+  put('/task/:task/items/:item') do |task, item|
+    if check_logged_in
+      # task = Task.find(task).items
+      name = params[:name]
+      item = @user.tasks.get(task).items.get(item)
+      if (!item.nil?)
+        item.update(:name => name) unless name.nil? # TODO: Need to confirm this
+        message = item
+      else
+        message = {error: true, message: 'Item Could not be found!'}
+      end
+    else
+      message = {error: true, message: 'Authentication Faild!'}
+    end
+    return message.to_json
+  end
 
+  #================================================
+
+
+  # This method checks if the
+  # the user is logged or not
+  #
   # @return [Object]
+
   def check_logged_in
     token = params[:token]
     auth = Auth.first(token: token)
