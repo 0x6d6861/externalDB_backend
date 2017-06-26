@@ -1,7 +1,9 @@
 require 'data_mapper'
 require 'dm-migrations'
 
-DataMapper.setup(:default, ENV['DATABASE_URL'] || "sqlite3://#{Dir.pwd}/development.db")
+#DataMapper.setup(:default, ENV['DATABASE_URL'] || "sqlite3://#{Dir.pwd}/development.db")
+#DataMapper.setup(:default, 'postgres://user:password@hostname/database')
+
 
 require File.dirname(__FILE__) + '/user'
 require File.dirname(__FILE__) + '/auth'
